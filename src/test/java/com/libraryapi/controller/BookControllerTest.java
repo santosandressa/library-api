@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.libraryapi.collection.Book;
 import com.libraryapi.dto.BookDTO;
 import com.libraryapi.service.BookService;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +20,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,14 +38,19 @@ public class BookControllerTest {
     @MockBean
     BookService bookService;
 
-    @Test
-    @DisplayName("Deve criar um livro com sucesso")
-    public void shouldCreateABook() throws Exception {
-
+    private BookDTO createNewBook() {
         BookDTO bookDTO = new BookDTO();
         bookDTO.setTitle("Lord of the Rings");
         bookDTO.setAuthor("J.R.R. Tolkien");
         bookDTO.setIsbn("123456789");
+        return bookDTO;
+    }
+
+    @Test
+    @DisplayName("Deve criar um livro com sucesso")
+    public void shouldCreateABook() throws Exception {
+
+        BookDTO bookDTO = createNewBook();
 
         Book savedBook = new Book();
         savedBook.setId("1");
@@ -58,7 +63,7 @@ public class BookControllerTest {
 
         String json = new ObjectMapper().writeValueAsString(bookDTO);
 
-        MockHttpServletRequestBuilder request  = MockMvcRequestBuilders.post(BOOK_API)
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(BOOK_API)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(json);
@@ -74,7 +79,37 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("Deve lançar erro quando não ter dados suficientes para criar um livro")
-    public void shouldFailWhenNoData() {
+    public void shouldFailWhenNoData() throws Exception {
+
+        String json = new ObjectMapper().writeValueAsString(new BookDTO());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(BOOK_API)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        mockMvc.perform(request)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("fields", Matchers.hasSize(3)));
+    }
+
+    @Test
+    @DisplayName("Deve lançar erro ao tentar cadastrar um livro com isbnjá existente")
+    public void shouldNotCreateBookWithDuplicateIsbn() throws Exception {
+
+        BookDTO dto = createNewBook();
+        String json = new ObjectMapper().writeValueAsString(dto);
+        String message = "Já existe um livro com o isbn";
+        BDDMockito.given(bookService.save(Mockito.any(Book.class))).willThrow(new RuntimeException(message));
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(BOOK_API)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        mockMvc.perform(request)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(message));
 
     }
 

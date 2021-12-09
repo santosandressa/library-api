@@ -1,10 +1,18 @@
 package com.libraryapi.dto;
 
+import javax.validation.constraints.NotEmpty;
+
 public class BookDTO {
 
     private String id;
+
+    @NotEmpty(message = "Title is mandatory")
     private String title;
+
+    @NotEmpty(message = "Author is mandatory")
     private String author;
+
+    @NotEmpty(message = "ISBN is mandatory")
     private String isbn;
 
     public BookDTO(String id, String title, String author, String isbn) {
