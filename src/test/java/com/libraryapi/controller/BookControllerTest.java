@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -21,16 +22,18 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.Optional;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
-@WebMvcTest
+@WebMvcTest(BookController.class)
 @AutoConfigureMockMvc
 public class BookControllerTest {
 
-    static String BOOK_API = "/api/books";
+    final static String BOOK_API = "/api/books";
 
     @Autowired
     MockMvc mockMvc;
@@ -57,7 +60,6 @@ public class BookControllerTest {
         savedBook.setTitle("Lord of the Rings");
         savedBook.setAuthor("J.R.R. Tolkien");
         savedBook.setIsbn("123456789");
-
 
         BDDMockito.given(bookService.save(Mockito.any(Book.class))).willReturn(savedBook);
 
@@ -94,9 +96,8 @@ public class BookControllerTest {
     }
 
     @Test
-    @DisplayName("Deve lançar erro ao tentar cadastrar um livro com isbnjá existente")
+    @DisplayName("Deve lançar erro ao tentar cadastrar um livro com isbn já existente")
     public void shouldNotCreateBookWithDuplicateIsbn() throws Exception {
-
         BookDTO dto = createNewBook();
         String json = new ObjectMapper().writeValueAsString(dto);
         String message = "Já existe um livro com o isbn";
@@ -110,7 +111,41 @@ public class BookControllerTest {
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("message").value(message));
-
     }
 
+    @Test
+    @DisplayName("Deve obter informações de um livro")
+    public void shouldGetBookDetails() throws Exception {
+
+        String id = "1";
+        Book book = new Book();
+        book.setId(id);
+        book.setTitle(createNewBook().getTitle());
+        book.setAuthor(createNewBook().getAuthor());
+        book.setIsbn(createNewBook().getIsbn());
+
+        BDDMockito.given(bookService.getBydId(id)).willReturn(Optional.of(book));
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(BOOK_API.concat("/"+id))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(id))
+                .andExpect(jsonPath("title").value(book.getTitle()))
+                .andExpect(jsonPath("author").value(book.getAuthor()))
+                .andExpect(jsonPath("isbn").value(book.getIsbn()));
+    }
+
+    @Test
+    @DisplayName("Deve retornar resource not found quando não encontrar um livro")
+    public void bookNotFound() throws Exception {
+        BDDMockito.given(bookService.getBydId(Mockito.anyString())).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(BOOK_API.concat("/"+"2"))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(request)
+                .andExpect(status().isBadRequest());
+    }
 }

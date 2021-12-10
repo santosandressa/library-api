@@ -7,10 +7,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 
@@ -24,6 +22,11 @@ public class BookController {
     @Autowired
     ModelMapper modelMapper;
 
+    @GetMapping("/{id}")
+    public BookDTO get(@PathVariable String id) {
+        return bookService.getBydId(id).map(book -> modelMapper.map(book, BookDTO.class))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+    }
 
     @PostMapping
     public ResponseEntity<BookDTO> create(@Valid @RequestBody BookDTO bookDTO) {
