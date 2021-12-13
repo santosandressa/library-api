@@ -19,12 +19,13 @@ public class BookController {
     @Autowired
     BookService bookService;
 
+
     @Autowired
     ModelMapper modelMapper;
 
-    @GetMapping("/{id}")
+    @GetMapping({"/{id}"})
     public BookDTO get(@PathVariable String id) {
-        return bookService.getBydId(id).map(book -> modelMapper.map(book, BookDTO.class))
+        return bookService.getById(id).map(book -> modelMapper.map(book, BookDTO.class))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
     }
 
@@ -36,5 +37,12 @@ public class BookController {
         modelMapper.map(book, bookDTO);
 
         return new ResponseEntity<>(bookDTO, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping({"/{id}"})
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String id){
+        Book book = bookService.getById(id).orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND) );
+        bookService.delete(book);
     }
 }

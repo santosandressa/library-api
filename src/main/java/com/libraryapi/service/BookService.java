@@ -8,5 +8,9 @@ public interface BookService {
 
     Book save(Book book);
 
-    Optional<Book> getBydId(String id);
+    Optional<Book> getById(String id);
+
+    void delete(Book book);
+
+
 }

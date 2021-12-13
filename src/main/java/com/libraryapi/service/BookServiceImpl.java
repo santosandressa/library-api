@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+
 @Service
 public class BookServiceImpl implements BookService {
-
 
     private final BookRepository bookRepository;
 
@@ -18,17 +18,28 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book save(Book book) {
-        boolean isbnExists = bookRepository.existsByIsbn(book.getIsbn());
+        boolean isbnExists = this.bookRepository.existsByIsbn(book.getIsbn());
 
         if(isbnExists) {
             throw new RuntimeException("Já existe um livro com o isbn");
         }
 
-        return bookRepository.save(book);
+        return this.bookRepository.save(book);
     }
 
     @Override
-    public Optional<Book> getBydId(String id) {
-        return Optional.empty();
+    public Optional<Book> getById(String id) {
+        return this.bookRepository.findById(id);
     }
+
+    @Override
+    public void delete(Book book) {
+        if(book == null || book.getId() == null){
+            throw new RuntimeException("Book id cannot be null.");
+        }
+
+        this.bookRepository.delete(book);
+    }
+
+
 }
