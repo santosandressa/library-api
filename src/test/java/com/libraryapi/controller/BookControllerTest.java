@@ -145,5 +145,50 @@ public class BookControllerTest {
         mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("Deve atualizar um livro")
+    public void shouldUpdateBook() throws Exception {
+
+        String json = new ObjectMapper().writeValueAsString(createNewBook());
+
+        Book book = new Book();
+        book.setId("1");
+        book.setTitle("Harry Potter");
+        book.setAuthor("J.K. Rowling");
+        book.setIsbn("123456789");
+
+        BDDMockito.given(bookService.getById(anyString())).willReturn(Optional.of(book));
+        BDDMockito.given(bookService.save(Mockito.any(Book.class))).willReturn(book);
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put(BOOK_API.concat("/" + "1"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(book.getId()))
+                .andExpect(jsonPath("title").value(book.getTitle()))
+                .andExpect(jsonPath("author").value(book.getAuthor()))
+                .andExpect(jsonPath("isbn").value(book.getIsbn()));
+    }
+
+
+    @Test
+    @DisplayName("Deve retornar resource bad request quando não encontrar um livro para atualizar")
+    public void bookNotFoundUpdate() throws Exception {
+        String json = new ObjectMapper().writeValueAsString(createNewBook());
+
+        BDDMockito.given(bookService.getById(anyString())).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put(BOOK_API.concat("/" + "1"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        mockMvc.perform(request)
+                .andExpect(status().isBadRequest());
+    }
+
 
 }

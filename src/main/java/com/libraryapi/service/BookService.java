@@ -13,6 +13,8 @@ public interface BookService {
 
     Optional<Book> getById(String id);
 
+    Book update(Book book);
+
     void delete(Book book);
 
 

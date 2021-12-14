@@ -51,4 +51,19 @@ public class BookController {
         Book book = bookService.getById(id).orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND) );
         bookService.delete(book);
     }
+
+    @PutMapping({"/{id}"})
+    public ResponseEntity<BookDTO> update(@PathVariable String id, @Valid @RequestBody BookDTO bookDTO) {
+        Book book = bookService.getById(id).orElseThrow( () -> new ResponseStatusException(HttpStatus.BAD_REQUEST) );
+
+        book.setTitle(bookDTO.getTitle());
+        book.setAuthor(bookDTO.getAuthor());
+        book.setIsbn(bookDTO.getIsbn());
+
+        book = bookService.save(book);
+
+        modelMapper.map(book, bookDTO);
+
+        return new ResponseEntity<>(bookDTO, HttpStatus.OK);
+    }
 }
