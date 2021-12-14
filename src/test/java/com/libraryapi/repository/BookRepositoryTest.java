@@ -44,7 +44,7 @@ public class BookRepositoryTest  {
     @DisplayName("Deve retornar falso quando não existir um livro com o isbn informado")
     public void findByIsbn_shouldReturnFalseWhenNotExists() {
         // cenario
-        String isbn = "1";
+        String isbn = "4";
 
         // acao
         boolean exists = bookRepository.existsByIsbn(isbn);

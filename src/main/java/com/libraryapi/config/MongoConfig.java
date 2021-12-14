@@ -1,22 +1,13 @@
-package com.libraryapi.configuration;
+package com.libraryapi.config;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
-import org.springframework.data.mongodb.core.MongoClientFactoryBean;
 
 import java.util.Collection;
 import java.util.Collections;
 
 @Configuration
-public class MongoConfig  extends AbstractMongoClientConfiguration {
-
-    @Bean
-    public MongoClientFactoryBean mongo() {
-        MongoClientFactoryBean mongo = new MongoClientFactoryBean();
-        mongo.setHost("localhost");
-        return mongo;
-    }
+public class MongoConfig extends AbstractMongoClientConfiguration {
 
     @Override
     public String getDatabaseName() {
@@ -27,5 +18,4 @@ public class MongoConfig  extends AbstractMongoClientConfiguration {
     protected Collection<String> getMappingBasePackages() {
         return Collections.singleton("com.libraryapi");
     }
-
 }

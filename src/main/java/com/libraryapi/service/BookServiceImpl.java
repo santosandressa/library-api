@@ -4,6 +4,7 @@ import com.libraryapi.collection.Book;
 import com.libraryapi.repository.BookRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -25,6 +26,11 @@ public class BookServiceImpl implements BookService {
         }
 
         return this.bookRepository.save(book);
+    }
+
+    @Override
+    public List<Book> getAll() {
+        return this.bookRepository.findAll();
     }
 
     @Override
